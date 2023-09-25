@@ -33,7 +33,6 @@ import * as elements from "typed-html";
 //          - Favorite button
 //          - Option to post an update (unknown how)
 
-
 const app = new Elysia()
   .use(staticPlugin()) // Serve the 'public' folder
   .use(html())
@@ -65,20 +64,13 @@ const app = new Elysia()
       }),
     }
   )
-  // .delete(
-  //   "/animals/:id",
-  //   ({ params }) => {
-  //     const todo = db.find((todo) => todo.id === params.id);
-  //     if (todo) {
-  //       db.splice(db.indexOf(todo), 1);
-  //     }
-  //   },
-  //   {
-  //     params: t.Object({
-  //       id: t.Numeric(),
-  //     }),
-  //   }
-  // )
+  .get("/claim-animal", () => {
+    return <AnimalClaimForm />;
+  })
+  .get("/prompt", () => {
+    // use to un-toggle the claim-animal form
+    return <AnimalClaimPrompt />;
+  })
   .post(
     "/claim-animal/:id",
     ({ body }) => {
@@ -124,7 +116,7 @@ const BaseHtml = ({ children }: elements.Children) => `
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BETH STACK</title>
+  <title>Foster Follow</title>
   <script src="https://unpkg.com/htmx.org@1.9.5"></script>
   <script src="https://unpkg.com/hyperscript.org@0.9.11"></script> 
   <script src="https://cdn.jsdelivr.net/npm/@unocss/runtime"></script>
@@ -268,11 +260,11 @@ function AnimalItem({ id, name, location, type, image, favorite }: Animal) {
 
 function AnimalList({ animal }: { animal: Animal[] }) {
   return (
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-2">
+      <AnimalClaimPrompt />
       {animal.map((animal) => (
         <AnimalItem {...animal} />
       ))}
-      <AnimalClaimForm />
     </div>
   );
 }
@@ -291,7 +283,7 @@ function AnimalList({ animal }: { animal: Animal[] }) {
 //   );
 // }
 
-function AnimalForm() {
+function AnimalForm() { // Deprecated
   return (
     <form
       class="flex flex-col space-x-3"
@@ -334,51 +326,57 @@ function AnimalForm() {
 
 function AnimalClaimForm() {
   // TODO: Add a dropdown for type ??
-  // TODO: What does the flow look like for a foster? 
-  //  - Claim animal by ID > ID exists > add to foster's list and allow updates
-  //  - Claim animal by ID > ID doesn't exist / "I dont have an ID" > redirect to form > add to db and foster's list and allow updates
   return (
-    <div class="p-4 max-w-sm mx-auto bg-gray-100 rounded-lg shadow-md">
-      <h1 class="text-2xl font-semibold text-center">Report an Interaction</h1>
-      <form
-        class="mt-4"
-        hx-post="/claim-animal"
-        hx-swap="beforebegin"
-        _="on htmx:afterRequest target.reset()" // hyperscript!
+    <form
+      class="text-center flex flex-col p-4 max-w-sm mx-fill bg-gray-100 rounded-lg shadow-md"
+      hx-post="/claim-animal"
+      hx-swap="beforebegin"
+      _="on htmx:afterRequest target.reset()" // hyperscript!
+    >
+      <input
+        type="animalID"
+        id="animalID"
+        name="animalID"
+        class="w-full text-center mb-2 px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+        placeholder="[ Foster ID ]"
+        required="true"
+      />
+      <button
+        type="sumbit"
+        class="bg-blue-400 text-white text-center font-bold mb-1 px-4 rounded inline-block hover:bg-blue-600"
       >
-        <div class="mb-4">
-          <label for="animalID" class="block mb-1 text-gray-700">
-            Animal ID (?)
-          </label>
-          <input
-            type="animalID"
-            id="animalID"
-            name="animalID"
-            class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
-            placeholder="<placeholder animal id>"
-            required="true"
-          />
-        </div>
-        <div class="text-center">
-          <button
-            type="submit"
-            class="bg-blue-500 text-white font-bold py-2 px-4 rounded inline-block hover:bg-blue-600"
-          >
-            Report Interaction
-          </button>
-        </div>
-      </form>
+        Report Interaction
+      </button>
+      <button
+        type="sumbit"
+        class="text-gray text-center px-4 border-black rounded inline-block hover:bg-gray-200 font-light font-size-2"
+      >
+        (Don't have an ID? Add a new one!)
+      </button>
+    </form>
+  );
+}
+
+function AnimalClaimPrompt() {
+  return (
+    <div class="p-4 max-w-sm mx-fill bg-gray-100 rounded-lg shadow-md text-center">
+      <button
+        type="sumbit"
+        class="bg-blue-400 text-white font-bold py-2 px-4 rounded inline-block hover:bg-blue-600"
+        hx-get="/claim-animal"
+        hx-swap="outerHTML"
+        hx-target="closest div"
+      >
+        Report Interaction!
+      </button>
     </div>
   );
 }
 
 function AnimalCreateForm() {
   // TODO: Add a dropdown for type ??
-  // TODO: What does the flow look like for a foster? 
-  //  - Claim animal by ID > ID exists > add to foster's list and allow updates
-  //  - Claim animal by ID > ID doesn't exist / "I dont have an ID" > redirect to form > add to db and foster's list and allow updates
   return (
-    <div class="p-4 max-w-sm mx-auto bg-gray-100 rounded-lg shadow-md">
+    <div class="p-4 max-w-sm mx-fill bg-gray-100 rounded-lg shadow-md">
       <h1 class="text-2xl font-semibold text-center">Report an Interaction</h1>
       <form
         class="mt-4"
